@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <unistd.h>             //Added to get rid of warnings.
 
 #define MAX 15
 
@@ -59,10 +60,10 @@ void parse_args() {
 } // end of parse_args;
 
 void execute() {
-  pid_t child, pid;
+  pid_t pid;
   int status;
 
-  struct rusage usage;                // refer to man getrusage(2)
+  struct rusage usage;        // refer to man getrusage(2). Holds the current child proccess usage time.
   struct timeval tim;                 // timeval struct
   long ivcsw;                         // involuntary context switches
 
@@ -74,17 +75,17 @@ void execute() {
     exit(0);
   } else {
     wait(&status);
-    getrusage(RUSAGE_SELF, &usage);
+    //getrusage(RUSAGE_SELF, &usage);
+    getrusage(RUSAGE_CHILDREN, &usage);
     ivcsw = usage.ru_nivcsw;
     tim = usage.ru_utime;
 
-    //if (cmdCount == 0) {
+    if (cmdCount == 0) {
       printf("Time elasped at: %ld.%lds\n", tim.tv_sec, tim.tv_usec);
-    //} 
-    // else {
-    //   printf("Time elasped at: %ld.%lds\n", 
-    //     (tim.tv_sec-oldTim.tv_sec), (tim.tv_usec-oldTim.tv_usec));
-    // }
+    } 
+    else {
+       printf("Time elasped at: %ld.%lds\n", (tim.tv_sec-oldTim.tv_sec), (tim.tv_usec-oldTim.tv_usec));
+    }
 
     oldTim = tim;    
     printf("Total involuntary context switches: %ld\n", ivcsw);
