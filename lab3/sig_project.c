@@ -68,11 +68,13 @@ void childProcess(void)
 }   // end of childProcess
 
 void sigHandler1(int sigNum) {
-    printf(" received a SIGUSR1 signal.\n");
+    if(runningChild)
+        printf(" received a SIGUSR1 signal.\n");
 }   // end of sigHandler1
 
 void sigHandler2(int sigNum) {
-    printf(" received a SIGUSR2 signal.\n");
+    if(runningChild)
+        printf(" received a SIGUSR2 signal.\n");
 }   // end of sigHandler2
 
 void sigHandlerShutdown(int sigNum) {
