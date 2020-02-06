@@ -51,5 +51,6 @@ void* worker_threads(void* arg)
 
     //std::cout << "Thread Output: " << std::endl;
     std::cout << *userRequest << std::endl;
+    delete userRequest;
     return NULL;
 }
