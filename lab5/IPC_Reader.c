@@ -24,6 +24,7 @@ struct shMemSeg {
 
 int shmId;
 int myPosition;
+int oldReaderCount;
 key_t shMemKey;
 struct shMemSeg *shMemMessages;
 
@@ -53,16 +54,26 @@ int main() {
     shMemMessages->readerCount = 0;
   }
 
-  myPosition = shMemMessages->readerCount + 1;
   shMemMessages->readerCount = shMemMessages->readerCount + 1;
+  oldReaderCount = shMemMessages->readerCount;
+  myPosition = shMemMessages->readerCount;
 
   while(1) {
-    if (shMemMessages->wordCount > 0) {                             // making sure word is ready to be read
-      if ((shMemMessages->readCount+1) == myPosition) {             // my turn to read
+
+    /** Reader before me dips out */
+    if (shMemMessages->readerCount < oldReaderCount) {
+      myPosition = myPosition - (oldReaderCount - shMemMessages->readerCount);
+      oldReaderCount = shMemMessages->readerCount;
+    }
+
+    /** making sure word is ready to be read */
+    if (shMemMessages->wordCount > 0) { 
+      /** My turn to read */
+      if ((shMemMessages->readCount+1) == myPosition) { 
         printf("Messege from writer: %s\n", shMemMessages->buffer);
         shMemMessages->readCount = (shMemMessages->readCount + 1);
-      }
-    }
+      } // end of my turn
+    } // end of of word is ready
   } // end of while
 
   return 0;
@@ -71,6 +82,7 @@ int main() {
 
 void sigHandlerShutdown(int sigNum) {
   printf("\nDettaching.\n");
+  shMemMessages->readerCount = shMemMessages->readerCount - 1;
   shmdt(shMemMessages);
   shmctl(shmId, IPC_RMID, 0);
   exit(1);
